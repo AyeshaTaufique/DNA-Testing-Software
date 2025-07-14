@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Chemist Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to bottom right, #f4fdfc, #e0f7f6);
+      margin: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #00b8b8;
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4em;
+    }
+
+    .main-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,180,180,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #00b8b8;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #007e7e;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #b2f0f0;
+      border-radius: 5px;
+      background-color: #f4fdfc;
+      color: #333;
+      outline: none;
+    }
+
+    button[type="submit"] {
+      margin-top: 30px;
+      width: 100%;
+      background-color: #00b8b8;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #009e9e;
+    }
+
+    .back-button {
+      background: white;
+      color: #00b8b8;
+      border: 2px solid #00b8b8;
+      padding: 10px 15px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .back-button:hover {
+      background: #00b8b8;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Manage Chemist Profile</h1>
+    <button class="back-button" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+  </header>
+
+  <div class="main-container">
+    <h2>Update Your Information</h2>
+    <form action="/update_profile" method="POST">
+
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" placeholder="Your Name" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required>
+
+      <label for="designation">Designation</label>
+      <input type="text" id="designation" name="designation" placeholder="e.g. Analyst" required>
+
+      <label for="organization">Organization</label>
+      <input type="text" id="organization" name="organization" placeholder="e.g. DNA Labs Inc." required>
+
+      <label for="old_password">Old Password</label>
+      <input type="password" id="old_password" name="old_password" placeholder="Enter current password" required>
+
+      <label for="new_password">New Password</label>
+      <input type="password" id="new_password" name="new_password" placeholder="Leave blank to keep current password">
+
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+
+</body>
+</html>

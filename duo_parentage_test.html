@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Parentage Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background: #f4fdfc;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #00b8b8;
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    header h2 {
+      margin: 0;
+      font-size: 1.4em;
+    }
+
+    .button {
+      background-color: white;
+      color: #00b8b8;
+      border: none;
+      padding: 10px 18px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .form-section {
+      max-width: 900px;
+      background: white;
+      padding: 25px;
+      margin: 30px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 180, 180, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #007e7e;
+    }
+
+    select,
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border-radius: 5px;
+      border: 1px solid #b2f0f0;
+      background-color: #f4fdfc;
+    }
+
+    .submit-btn {
+      margin-top: 20px;
+      background-color: #00b8b8;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #009e9e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid #b2f0f0;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #e0f7f6;
+      color: #007e7e;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message-box {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #00b8b8;
+      border: 1px solid #00b8b8;
+      padding: 20px 30px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 8px 20px rgba(0, 180, 180, 0.2);
+      z-index: 999;
+      display: none;
+    }
+
+    .error {
+      color: #ff0033;
+      border-color: #ff0033;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2> Duo Parentage Test</h2>
+    <button class="button" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+  </header>
+
+  <div class="form-section" id="kitSection">
+    <label for="kitSelect">Select DNA Kit</label>
+    <select id="kitSelect">
+      <option value="">-- Choose a Kit --</option>
+      <option value="kit1">GlobalFiler</option>
+      <option value="kit2">PowerPlex Fusion</option>
+    </select>
+    <button class="submit-btn" onclick="selectKit()">Confirm Kit</button>
+  </div>
+
+  <div class="form-section hidden" id="profileAForm">
+    <h3>Profile A</h3>
+    <label>Name</label>
+    <input type="text" id="nameA" placeholder="Enter name" />
+
+    <label>Relationship</label>
+    <input type="text" id="relationshipA" placeholder="e.g. Mother, Alleged Father" />
+
+    <label>Date</label>
+    <input type="date" id="dateA" />
+
+    <div id="lociTableA"></div>
+    <button class="submit-btn" onclick="saveProfile('A')">Save Profile A</button>
+  </div>
+
+  <div class="form-section hidden" id="profileBForm">
+    <h3>Profile B</h3>
+    <label>Name</label>
+    <input type="text" id="nameB" placeholder="Enter name" />
+
+
+    <label>Relationship</label>
+    <input type="text" id="RelationshipB" placeholder="e.g. Father, Mother, Child, Sibling" />
+
+
+    <label>Date</label>
+    <input type="date" id="dateB" />
+
+    <div id="lociTableB"></div>
+    <button class="submit-btn" onclick="saveProfile('B')">Save Profile B</button>
+  </div>
+
+  <div id="messageBox" class="message-box"></div>
+
+  <script>
+    const lociMap = {
+      kit1: ["D3S1358", "vWA", "FGA", "TH01", "D8S1179"],
+      kit2: ["D5S818", "D13S317", "D7S820", "CSF1PO", "TPOX"]
+    };
+
+    let selectedKit = "";
+
+    function showMessage(msg, isError = false) {
+      const box = document.getElementById("messageBox");
+      box.textContent = msg;
+      box.className = isError ? "message-box error" : "message-box";
+      box.style.display = "block";
+      setTimeout(() => (box.style.display = "none"), 3000);
+    }
+
+    function selectKit() {
+      selectedKit = document.getElementById("kitSelect").value;
+
+      if (!selectedKit) {
+        showMessage("Please select a DNA kit.", true);
+        return;
+      }
+
+      document.getElementById("profileAForm").classList.remove("hidden");
+      document.getElementById("dateA").valueAsDate = new Date();
+
+      generateLociTable("A", lociMap[selectedKit]);
+    }
+
+    function generateLociTable(profile, lociList) {
+      const container = document.getElementById("lociTable" + profile);
+      let html = `<table>
+          <tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr>`;
+      lociList.forEach((locus, i) => {
+        html += `<tr>
+            <td>${locus}</td>
+            <td><input type="text" name="allele1_${profile}_${i}" /></td>
+            <td><input type="text" name="allele2_${profile}_${i}" /></td>
+          </tr>`;
+      });
+      html += `</table>`;
+      container.innerHTML = html;
+    }
+
+    function saveProfile(profile) {
+      const name = document.getElementById("name" + profile).value.trim();
+      const relationship = document.getElementById("relationship" + profile).value.trim();
+
+      if (!name || !relationship) {
+        showMessage(`Please enter name and relationship for Profile ${profile}.`, true);
+        return;
+      }
+
+      if (profile === "A") {
+        document.getElementById("profileBForm").classList.remove("hidden");
+        document.getElementById("dateB").valueAsDate = new Date();
+        generateLociTable("B", lociMap[selectedKit]);
+        showMessage("Profile A saved successfully.");
+      } else {
+        showMessage("Profile B saved successfully. Ready to proceed.");
+      }
+    }
+  </script>
+</body>
+
+</html>

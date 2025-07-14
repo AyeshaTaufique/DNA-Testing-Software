@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DNA Relationship Analyzer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #f4fdfc, #e0f7f6);
+      color: #333;
+      font-family: 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding-top: 50px;
+    }
+
+    h1 {
+      font-size: 2.8em;
+      margin-bottom: 30px;
+      color: #00b8b8;
+      text-shadow: 0 0 6px rgba(0, 200, 200, 0.1);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      padding: 0 40px;
+      margin-bottom: 40px;
+    }
+
+    .stats div {
+      background: white;
+      border: 1px solid #b2f0f0;
+      box-shadow: 0 4px 8px rgba(0, 180, 180, 0.15);
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 1.05em;
+    }
+
+    #dna {
+      position: relative;
+      height: 240px;
+      width: 800px;
+      margin: 0 auto;
+      perspective: 1000px;
+      z-index: -1;
+    }
+
+    #dna div {
+      position: relative;
+      top: 50%;
+      left: 60px;
+      width: 2px;
+      height: 160px;
+      margin-top: -80px;
+      background-color: rgba(0, 0, 0, 0.08);
+      float: left;
+      transform-style: preserve-3d;
+      margin-left: 20px;
+      animation: rotation 4s linear infinite;
+    }
+
+    #dna div::before, #dna div::after {
+      content: "";
+      position: absolute;
+      left: -4px;
+      right: -4px;
+      height: 10px;
+      background: linear-gradient(45deg, #00b8b8, #88e2e2, #4dd0e1, #1de9b6);
+      background-size: 400% 400%;
+      border-radius: 5px;
+      animation: rotation 4s linear infinite reverse, colorShift 6s linear infinite;
+      z-index: 1;
+    }
+
+    #dna div::before { top: -10px; }
+    #dna div::after  { bottom: -10px; }
+
+    @keyframes rotation {
+      from { transform: rotateX(0deg); }
+      to { transform: rotateX(359deg); }
+    }
+
+    @keyframes colorShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    #dna div:nth-child(n) {
+      animation-delay: calc(-0.15s * var(--i));
+    }
+
+    #dna div:nth-child(n)::before,
+    #dna div:nth-child(n)::after {
+      animation-delay: calc(-0.15s * var(--i));
+    }
+
+    .start-btn {
+      background-color: #00b8b8;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1em;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 40px;
+      box-shadow: 0 4px 10px rgba(0, 180, 180, 0.2);
+      transition: background-color 0.3s ease;
+    }
+
+    .start-btn:hover {
+      background-color: #009e9e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>DNA Relationship Analyzer</h1>
+
+    <div class="stats">
+      <div>10,000+ Profiles Tested</div>
+      <div>98.7% Match Accuracy</div>
+      <div>Paternity & Sibship Supported</div>
+      <div>Secure & Confidential Reports</div>
+    </div>
+
+    <div id="dna">
+      <script>
+        for(let i=1; i<=30; i++) {
+          document.write(`<div style="--i:${i}"></div>`);
+        }
+      </script>
+    </div>
+
+    <button class="start-btn" onclick="window.location.href='signup.html'">Start System</button>
+  </div>
+
+</body>
+</html>
