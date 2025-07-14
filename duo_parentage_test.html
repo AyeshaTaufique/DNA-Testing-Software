@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Parentage Test</title>
+  <title>Duo Parentage Test</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -14,6 +14,8 @@
     }
 
     header {
+      position: sticky;
+      top: 0;
       background-color: #00b8b8;
       color: white;
       padding: 20px 40px;
@@ -21,6 +23,7 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 999;
     }
 
     header h2 {
@@ -127,7 +130,7 @@
 
 <body>
   <header>
-    <h2> Duo Parentage Test</h2>
+    <h2>Duo Parentage Test</h2>
     <button class="button" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
   </header>
 
@@ -147,7 +150,7 @@
     <input type="text" id="nameA" placeholder="Enter name" />
 
     <label>Relationship</label>
-    <input type="text" id="relationshipA" placeholder="e.g. Mother, Alleged Father" />
+    <input type="text" id="relationshipA" placeholder="e.g. Father, Mother, Child, Sibling" />
 
     <label>Date</label>
     <input type="date" id="dateA" />
@@ -161,10 +164,8 @@
     <label>Name</label>
     <input type="text" id="nameB" placeholder="Enter name" />
 
-
     <label>Relationship</label>
-    <input type="text" id="RelationshipB" placeholder="e.g. Father, Mother, Child, Sibling" />
-
+    <input type="text" id="relationshipB" placeholder="e.g. Father, Mother, Child" />
 
     <label>Date</label>
     <input type="date" id="dateB" />
@@ -176,9 +177,10 @@
   <div id="messageBox" class="message-box"></div>
 
   <script>
+    // This map contains dummy loci data — REMOVE/REPLACE with backend values
     const lociMap = {
-      kit1: ["D3S1358", "vWA", "FGA", "TH01", "D8S1179"],
-      kit2: ["D5S818", "D13S317", "D7S820", "CSF1PO", "TPOX"]
+      kit1: ["D3S1358", "vWA", "FGA", "TH01", "D8S1179"], // DUMMY LOCUS DATA FOR FRONTEND ONLY
+      kit2: ["D5S818", "D13S317", "D7S820", "CSF1PO", "TPOX"] // DUMMY LOCUS DATA FOR FRONTEND ONLY
     };
 
     let selectedKit = "";
@@ -211,7 +213,7 @@
           <tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr>`;
       lociList.forEach((locus, i) => {
         html += `<tr>
-            <td>${locus}</td>
+            <td>${locus} <!-- TEMP LOCUS NAME FROM FRONTEND ONLY --></td>
             <td><input type="text" name="allele1_${profile}_${i}" /></td>
             <td><input type="text" name="allele2_${profile}_${i}" /></td>
           </tr>`;
@@ -223,10 +225,22 @@
     function saveProfile(profile) {
       const name = document.getElementById("name" + profile).value.trim();
       const relationship = document.getElementById("relationship" + profile).value.trim();
+      const date = document.getElementById("date" + profile).value;
 
-      if (!name || !relationship) {
-        showMessage(`Please enter name and relationship for Profile ${profile}.`, true);
+      // Validate credentials
+      if (!name || !relationship || !date) {
+        showMessage(`Please fill all the values of Profile ${profile}.`, true);
         return;
+      }
+
+      // Validate locus allele fields
+      const table = document.getElementById("lociTable" + profile);
+      const inputs = table.querySelectorAll("input");
+      for (let input of inputs) {
+        if (!input.value.trim()) {
+          showMessage("Please fill all allele values before proceeding.", true);
+          return;
+        }
       }
 
       if (profile === "A") {
