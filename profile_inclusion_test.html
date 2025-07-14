@@ -14,6 +14,8 @@
     }
 
     header {
+      position: sticky;
+      top: 0;
       background-color: #00b8b8;
       padding: 15px 30px;
       color: white;
@@ -22,6 +24,7 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      z-index: 999;
     }
 
     .back-btn {
@@ -143,18 +146,30 @@
   <div id="messageBox" class="message-box"></div>
 
   <script>
-    let locusList = ["D3S1358", "TH01", "D21S11", "D18S51"];
+    const lociMap = {
+      kit1: ["D3S1358", "vWA", "FGA", "TH01", "D8S1179"], // DUMMY LOCI FOR FRONTEND ONLY
+      kit2: ["D5S818", "D13S317", "D7S820", "CSF1PO", "TPOX"] // DUMMY LOCI FOR FRONTEND ONLY
+    };
+
     let currentProfileIndex = 0;
+    let selectedKit = "";
+
+    function showMessage(msg, isError) {
+      const box = document.getElementById('messageBox');
+      box.textContent = msg;
+      box.className = isError ? 'message-box error' : 'message-box';
+      box.style.display = 'block';
+      setTimeout(() => box.style.display = 'none', 3000);
+    }
 
     function generateProfileForms() {
       const count = parseInt(document.getElementById('profileCount').value);
-      const kit = document.getElementById('kitSelect').value;
+      selectedKit = document.getElementById('kitSelect').value;
       const container = document.getElementById('profileFormsContainer');
-
       container.innerHTML = '';
       currentProfileIndex = 0;
 
-      if (!kit) return showMessage('Please select a kit first', true);
+      if (!selectedKit) return showMessage('Please select a kit first', true);
       if (isNaN(count) || count < 2 || count > 6) return showMessage('Enter a valid number between 2 and 6', true);
 
       for (let i = 0; i < count; i++) {
@@ -167,21 +182,20 @@
         formDiv.innerHTML = `
           <h3>Profile ${profileLetter}</h3>
           <label>Name:</label>
-          <input type="text" id="name${i}">
-          <label>Role:</label>
-          <input type="text" id="role${i}" placeholder="e.g. Suspect, Evidence" >
+          <input type="text" id="name${i}"  placeholder="Enter name" >
 
           <label>Relationship:</label>
           <input type="text" id="relation${i}" placeholder="e.g. Mother, Father, Child, Sibling">
+
           <label>Date:</label>
           <input type="text" id="date${i}" value="${new Date().toLocaleDateString()}" readonly>
 
           <table>
             <thead><tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr></thead>
             <tbody>
-              ${locusList.map((locus, index) => `
+              ${lociMap[selectedKit].map((locus, index) => `
                 <tr>
-                  <td>${locus}</td>
+                  <td>${locus} <!-- DUMMY LOCUS FOR FRONTEND --></td>
                   <td><input type="text" id="allele1_${i}_${index}"></td>
                   <td><input type="text" id="allele2_${i}_${index}"></td>
                 </tr>`).join('')}
@@ -197,25 +211,28 @@
 
     function saveProfile(i, totalProfiles) {
       const name = document.getElementById(`name${i}`).value.trim();
-      const role = document.getElementById(`role${i}`).value.trim();
       const relation = document.getElementById(`relation${i}`).value.trim();
 
-      if (!name || !role || !relation) return showMessage(`Please fill all fields for Profile ${String.fromCharCode(65+i)}`, true);
+      if (!name || !relation) {
+        showMessage(`Please fill all fields for Profile ${String.fromCharCode(65+i)}`, true);
+        return;
+      }
 
-      showMessage(`Profile ${String.fromCharCode(65+i)} saved successfully!`, false);
+      for (let j = 0; j < lociMap[selectedKit].length; j++) {
+        const allele1 = document.getElementById(`allele1_${i}_${j}`).value.trim();
+        const allele2 = document.getElementById(`allele2_${i}_${j}`).value.trim();
+        if (!allele1 || !allele2) {
+          showMessage("Please fill all allele values.", true);
+          return;
+        }
+      }
 
       if (i + 1 < totalProfiles) {
+        showMessage(`Profile ${String.fromCharCode(65+i)} saved successfully.`);
         document.getElementById(`profileForm${i+1}`).style.display = 'block';
-        currentProfileIndex++;
+      } else {
+        showMessage(`Profile ${String.fromCharCode(65+i)} saved successfully. Ready to proceed.`);
       }
-    }
-
-    function showMessage(msg, isError) {
-      const box = document.getElementById('messageBox');
-      box.textContent = msg;
-      box.className = isError ? 'message-box error' : 'message-box';
-      box.style.display = 'block';
-      setTimeout(() => box.style.display = 'none', 3000);
     }
   </script>
 
