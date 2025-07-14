@@ -76,6 +76,18 @@
       color: #007e7e;
     }
 
+    .password-wrapper {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 35%;
+      cursor: pointer;
+      color: #00b8b8;
+    }
+
     input[type="text"],
     input[type="email"],
     input[type="password"] {
@@ -116,10 +128,31 @@
       margin-bottom: 20px;
       font-size: 24px;
     }
+
+    .message {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .success {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
   </style>
 </head>
 <body>
-
   <div class="container">
     <a href="index.html" class="back-button">←</a>
 
@@ -130,33 +163,39 @@
       <button id="showSignup">Sign Up</button>
     </div>
 
-    <!-- Login Form -->
-    <form id="loginForm" class="active" action="/login" method="POST">
+    <div id="messageBox" class="message"></div>
+
+    <form id="loginForm" class="active">
       <label for="login_email">Chemist Email</label>
-      <input type="text" id="login_email" name="chemist_id" required placeholder="Enter your ID">
+      <input type="text" id="login_email" required placeholder="Enter your Email">
 
       <label for="login_password">Password</label>
-      <input type="password" id="login_password" name="password" required placeholder="Enter your password">
+      <div class="password-wrapper">
+        <input type="password" id="login_password" required placeholder="Enter your password">
+        <span class="toggle-password" onclick="togglePassword('login_password')"></span>
+      </div>
 
       <button type="submit">Login</button>
     </form>
 
-    <!-- Sign Up Form -->
-    <form id="signupForm" action="/signup" method="POST">
+    <form id="signupForm">
       <label for="signup_name">Name</label>
-      <input type="text" id="signup_name" name="name" required placeholder="Your full name">
+      <input type="text" id="signup_name" required placeholder="Your full name">
 
       <label for="signup_password">Password</label>
-      <input type="password" id="signup_password" name="password" required placeholder="Create a password">
+      <div class="password-wrapper">
+        <input type="password" id="signup_password" required placeholder="Create a password">
+        <span class="toggle-password" onclick="togglePassword('signup_password')"></span>
+      </div>
 
       <label for="signup_email">Email</label>
-      <input type="email" id="signup_email" name="email" required placeholder="you@example.com">
+      <input type="email" id="signup_email" required placeholder="you@example.com">
 
       <label for="signup_design">Designation</label>
-      <input type="text" id="signup_design" name="design" required placeholder="e.g. Analyst">
+      <input type="text" id="signup_design" required placeholder="e.g. Analyst">
 
       <label for="signup_organ">Organization</label>
-      <input type="text" id="signup_organ" name="organ" required placeholder="e.g. DNA Labs Inc.">
+      <input type="text" id="signup_organ" required placeholder="e.g. DNA Labs Inc.">
 
       <button type="submit">Sign Up</button>
     </form>
@@ -167,12 +206,32 @@
     const showSignupBtn = document.getElementById('showSignup');
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
+    const messageBox = document.getElementById('messageBox');
+
+    let registeredEmail = "ayeshataufique29@gmail.com";
+    let registeredPassword = "ayesha2903@#";
+
+    function showMessage(msg, isSuccess = false) {
+      messageBox.style.display = 'block';
+      messageBox.textContent = msg;
+      messageBox.className = 'message ' + (isSuccess ? 'success' : 'error');
+    }
+
+    function hideMessage() {
+      messageBox.style.display = 'none';
+    }
+
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
 
     showLoginBtn.onclick = () => {
       loginForm.classList.add('active');
       signupForm.classList.remove('active');
       showLoginBtn.classList.add('active');
       showSignupBtn.classList.remove('active');
+      hideMessage();
     };
 
     showSignupBtn.onclick = () => {
@@ -180,8 +239,58 @@
       loginForm.classList.remove('active');
       showSignupBtn.classList.add('active');
       showLoginBtn.classList.remove('active');
+      hideMessage();
+    };
+
+    loginForm.onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login_email').value.trim();
+      const password = document.getElementById('login_password').value;
+
+      if (email === registeredEmail) {
+        if (password === registeredPassword) {
+          window.location.href = "dashboard.html";
+        } else {
+          showMessage("You have typed the wrong password.");
+        }
+      } else {
+        showMessage("Sign up in the system first to log in.");
+        signupForm.classList.add('active');
+        loginForm.classList.remove('active');
+        showSignupBtn.classList.add('active');
+        showLoginBtn.classList.remove('active');
+      }
+    };
+
+    signupForm.onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signup_email').value.trim();
+      const password = document.getElementById('signup_password').value;
+
+      const passwordValid = password.length >= 8 &&
+                            /[a-zA-Z]/.test(password) &&
+                            /[0-9]/.test(password) &&
+                            /[^a-zA-Z0-9]/.test(password);
+
+      if (!email.includes("@")) {
+        showMessage("Email must contain '@'");
+      } else if (!passwordValid) {
+        showMessage("Password must be at least 8 characters long and contain letters, numbers, and symbols.");
+      } else {
+        registeredEmail = email;
+        registeredPassword = password;
+        document.getElementById('login_email').value = email;
+        document.getElementById('login_password').value = password;
+        showMessage("You have signed up successfully!", true);
+        setTimeout(() => {
+          loginForm.classList.add('active');
+          signupForm.classList.remove('active');
+          showLoginBtn.classList.add('active');
+          showSignupBtn.classList.remove('active');
+          hideMessage();
+        }, 2000);
+      }
     };
   </script>
-
 </body>
 </html>
