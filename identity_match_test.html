@@ -250,6 +250,10 @@
         showMessage("Profile A saved successfully.");
       } else {
         showMessage("Profile B saved successfully. Ready to proceed.");
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1000); // redirects after 1 seconds
+
       }
     }
   </script>
