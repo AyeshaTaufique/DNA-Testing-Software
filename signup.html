@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,6 +41,9 @@
     }
 
     .tab-buttons {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       display: flex;
       justify-content: space-around;
       margin-bottom: 20px;
@@ -123,6 +128,8 @@
     }
 
     h2 {
+      position: sticky;
+
       text-align: center;
       color: #00b8b8;
       margin-bottom: 20px;
@@ -154,7 +161,7 @@
 </head>
 <body>
   <div class="container">
-    <a href="index.html" class="back-button">←</a>
+    <a href="{% url 'index' %}" class="back-button">←</a>
 
     <h2>Chemist Portal</h2>
 
@@ -178,15 +185,12 @@
       <button type="submit">Login</button>
     </form>
 
-    <form id="signupForm">
+<form method="post" id="signupForm">
+  {% csrf_token %}
       <label for="signup_name">Name</label>
       <input type="text" id="signup_name" required placeholder="Your full name">
 
-      <label for="signup_password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="signup_password" required placeholder="Create a password">
-        <span class="toggle-password" onclick="togglePassword('signup_password')"></span>
-      </div>
+
 
       <label for="signup_email">Email</label>
       <input type="email" id="signup_email" required placeholder="you@example.com">
@@ -196,6 +200,12 @@
 
       <label for="signup_organ">Organization</label>
       <input type="text" id="signup_organ" required placeholder="e.g. DNA Labs Inc.">
+
+      <label for="signup_password">Password</label>
+      <div class="password-wrapper">
+        <input type="password" id="signup_password" required placeholder="Create a password">
+        <span class="toggle-password" onclick="togglePassword('signup_password')"></span>
+      </div>
 
       <button type="submit">Sign Up</button>
     </form>
@@ -249,7 +259,7 @@
 
       if (email === registeredEmail) {
         if (password === registeredPassword) {
-          window.location.href = "dashboard.html";
+          window.location.href = "/dashboard/";
         } else {
           showMessage("You have typed the wrong password.");
         }
