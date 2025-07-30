@@ -1,39 +1,43 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Chemist Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
     <style>
         body {
             margin: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: "Inter", sans-serif;
             background-color: #f4fdfc;
+            overflow: hidden;
         }
 
         .sidebar {
-            width: 230px;
+            width: 220px;
             background-color: #007e7e;
             position: fixed;
             top: 0;
             bottom: 0;
             left: 0;
-            padding-top: 40px;
+            padding-top: 25px;
             color: white;
         }
 
         .sidebar h2 {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            font-size: 22px;
         }
 
         .sidebar a {
             display: block;
-            padding: 15px 20px;
+            padding: 12px 20px;
             color: white;
             text-decoration: none;
             font-weight: 500;
+            font-size: 16px;
         }
 
         .sidebar a:hover {
@@ -41,37 +45,39 @@
         }
 
         .content {
-            margin-left: 230px;
-            padding: 30px 40px;
+            margin-left: 220px;
+            padding: 12px 18px;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
 
         header h1 {
             color: #00b8b8;
-            font-size: 24px;
+            font-size: 26px;
         }
 
         .main-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            flex: 1;
         }
 
         .card {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 10px;
             border: 1px solid #b2f0f0;
             box-shadow: 0 4px 10px rgba(0, 180, 180, 0.1);
             text-align: center;
             cursor: pointer;
-            transition: 0.3s;
+            transition: transform 0.3s;
         }
 
         .card:hover {
@@ -79,23 +85,24 @@
         }
 
         .emoji-icon {
-            font-size: 36px;
-            margin-bottom: 10px;
+            font-size: 40px;
+            margin-bottom: 12px;
         }
 
         .card h3 {
-            margin: 10px 0 5px;
+            margin: 10px 0 6px;
             color: #007e7e;
+            font-size: 18px;
         }
 
         .card p {
-            font-size: 0.9em;
+            font-size: 14px;
             color: #555;
         }
 
         .report-card {
             background: linear-gradient(to right, #e0f2f1, #b2ebf2);
-            border-left: 8px solid #00b8b8;
+            border-left: 6px solid #00b8b8;
         }
 
         .report-card .emoji-icon {
@@ -107,64 +114,69 @@
 <body>
     <div class="sidebar">
         <h2>Dashboard</h2>
-        <a href="chemist_profile.html">👤 Manage Profile</a>
+        <a href="{% url 'chemist_profile' %}">👤 Manage Profile</a>
         <a href="#">📈 Test History</a>
-        <!-- <a href="#">🏠 Home</a> -->
-        <a href="index.html">🚪 Logout</a>
+        <a href="{% url 'index' %}">🚪 Logout</a>
     </div>
 
     <div class="content">
         <header>
-            <h1>Chemist Analysis Dashboard</h1>
+            <h1>Chemist Dashboard</h1>
         </header>
 
         <div class="main-container">
-            <div class="card" onclick="window.location.href='identity_match_test.html'">
+            <div class="card" onclick="window.location.href='{% url 'add_profile' %}'">
+                <div class="emoji-icon">➕</div>
+                <h3>Add Profile</h3>
+                <p>Create and save a new DNA profile.</p>
+            </div>
+
+            <div class="card" onclick="window.location.href='{% url 'random_match' %}'">
                 <div class="emoji-icon">👥</div>
-                <h3>Identity Match Test</h3>
-                <p>Compare two DNA profiles to confirm a match.</p>
+                <h3>Random Match Test</h3>
+                <p>Calculates the Random Match Probability of Two Profiles.</p>
             </div>
 
-            <div class="card" onclick="window.location.href='profile_inclusion_test.html'">
+            <div class="card" onclick="window.location.href='{% url 'profile_inclusion' %}'">
                 <div class="emoji-icon">👨‍👩‍👧</div>
-                <h3>Profile Inclusion Test</h3>
-                <p>Combined Probability of Inclusion (Up to 6 profiles).</p>
+                <h3>Profile Inclusion</h3>
+                <p>Combined Probability (up to 6 profiles).</p>
             </div>
 
-            <div class="card" onclick="window.location.href='duo_parentage_test.html'">
+            <div class="card" onclick="window.location.href='{% url 'duo_test' %}'">
                 <div class="emoji-icon">👨👶</div>
-                <h3>Duo Parentage Test</h3>
-                <p>Evaluate genetic link between one parent and child.</p>
+                <h3>Duo Parentage</h3>
+                <p>One parent and child relationship.</p>
             </div>
 
-            <div class="card" onclick="window.location.href='trio_parentage_test.html'">
+            <div class="card" onclick="window.location.href='{% url 'trio_test' %}'">
                 <div class="emoji-icon">👨‍👩‍👦</div>
-                <h3>Trio Parentage Test</h3>
-                <p>Confirm parentage with DNA from both parents and child.</p>
+                <h3>Trio Parentage</h3>
+                <p>DNA of both parents and child.</p>
             </div>
 
-            <div class="card" onclick="window.location.href='sibship_analysis.html'">
+            <div class="card" onclick="window.location.href='{% url 'sibship_analysis' %}'">
                 <div class="emoji-icon">👬</div>
                 <h3>Sibship Analysis</h3>
-                <p>Test if two individuals are full or half siblings or completely unrelated.</p>
+                <p>Check full or half sibling relation.</p>
             </div>
 
-            <div class="card" onclick="alert('Kinship Analysis selected')">
+            <div class="card" onclick="window.location.href='{% url 'kinship_analysis' %}'">
                 <div class="emoji-icon">👨‍👧</div>
-                <h3>Kinship Analysis</h3>
-                <p>Determine extended family relationships through DNA.</p>
+                <h3>Kinship Test</h3>
+                <p>Determine extended family links.</p>
             </div>
 
-            <div class="card" onclick="alert('Complex Percentage Test selected')">
+            <div class="card" onclick="window.location.href='{% url 'complex_test' %}'">
                 <div class="emoji-icon">👪</div>
-                <h3>Complex Percentage Test</h3>
-                <p>Percentage Analysis when Mother/Biological father and Alleged Father are related.</p>
+                <h3>Complex Parentage</h3>
+                <p>Test when alleged & real parent are related.</p>
             </div>
 
-            <div class="card report-card" onclick="alert('Generate Report')">
+            <div class="card report-card" onclick="window.location.href='{% url 'report' %}'">
                 <div class="emoji-icon">📄</div>
                 <h3>Reports</h3>
-                <p>Compile and export detailed analysis reports.</p>
+                <p>Compile and export analysis results.</p>
             </div>
         </div>
     </div>
