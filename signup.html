@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +11,60 @@
       color: #333;
       padding: 40px;
       margin: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* FIRST TWO IMAGES (left & right) */
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      width: 300px;
+      height: 100vh;
+      background-image: url("{% static 'frontend/c.png' %}");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+      filter: brightness(0.85);
+    }
+
+    body::before {
+      left: 0;
+    }
+
+    body::after {
+      right: 0;
+    }
+
+    /* EXTRA WRAPPER FOR DUPLICATE IMAGES */
+    .bg-layer::before,
+    .bg-layer::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      width: 300px;
+      height: 100vh;
+      background-image: url("{% static 'frontend/c.png' %}");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+      filter: brightness(0.85);
+    }
+
+    .bg-layer::before {
+      left: 150px; /* shift slightly from left */
+    }
+
+    .bg-layer::after {
+      right: 150px; /* shift slightly from right */
     }
 
     .container {
@@ -21,6 +74,8 @@
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 0 25px rgba(0, 180, 180, 0.15);
+      position: relative;
+      z-index: 1;
     }
 
     .back-button {
@@ -41,9 +96,6 @@
     }
 
     .tab-buttons {
-      position: sticky;
-      top: 0;
-      z-index: 10;
       display: flex;
       justify-content: space-around;
       margin-bottom: 20px;
@@ -128,8 +180,6 @@
     }
 
     h2 {
-      position: sticky;
-
       text-align: center;
       color: #00b8b8;
       margin-bottom: 20px;
@@ -143,7 +193,6 @@
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 4px;
-      display: none;
     }
 
     .success {
@@ -159,52 +208,61 @@
     }
   </style>
 </head>
+
 <body>
+  <body>
+  <!-- EXTRA BACKGROUND LAYER -->
+  <div class="bg-layer"></div>
   <div class="container">
     <a href="{% url 'index' %}" class="back-button">←</a>
 
     <h2>Chemist Portal</h2>
 
     <div class="tab-buttons">
-      <button id="showLogin" class="active">Login</button>
-      <button id="showSignup">Sign Up</button>
+      <button id="showLogin" class="{% if not show_signup %}active{% endif %}">Login</button>
+      <button id="showSignup" class="{% if show_signup %}active{% endif %}">Sign Up</button>
     </div>
 
-    <div id="messageBox" class="message"></div>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
-    <form id="loginForm" class="active">
+    <!-- Login Form -->
+    <form method="post" action="{% url 'login' %}" id="loginForm" class="{% if not show_signup %}active{% endif %}" autocomplete="on">
+      {% csrf_token %}
       <label for="login_email">Chemist Email</label>
-      <input type="text" id="login_email" required placeholder="Enter your Email">
+      <input type="email" name="email" id="login_email" required placeholder="Enter your Email" autocomplete="email">
 
       <label for="login_password">Password</label>
       <div class="password-wrapper">
-        <input type="password" id="login_password" required placeholder="Enter your password">
-        <span class="toggle-password" onclick="togglePassword('login_password')"></span>
+        <input type="password" name="password" id="login_password" required placeholder="Enter your password" autocomplete="current-password">
       </div>
 
       <button type="submit">Login</button>
     </form>
 
-<form method="post" id="signupForm">
-  {% csrf_token %}
-      <label for="signup_name">Name</label>
-      <input type="text" id="signup_name" required placeholder="Your full name">
+    <!-- Signup Form -->
+    <form method="post" action="{% url 'signup' %}" id="signupForm" class="{% if show_signup %}active{% endif %}" autocomplete="off">
+      {% csrf_token %}
+      <label for="name">Name</label>
+      <input type="text" name="name" required placeholder="Your full name">
 
+      <label for="email">Email</label>
+      <input type="email" name="email" required placeholder="you@example.com">
 
+      <label for="designation">Designation</label>
+      <input type="text" name="designation" autocomplete="organization-title" required placeholder="e.g. Analyst">
 
-      <label for="signup_email">Email</label>
-      <input type="email" id="signup_email" required placeholder="you@example.com">
+      <label for="organization">Organization</label>
+      <input type="text" name="organization" autocomplete="organization" required placeholder="e.g. DNA Labs Inc.">
 
-      <label for="signup_design">Designation</label>
-      <input type="text" id="signup_design" required placeholder="e.g. Analyst">
-
-      <label for="signup_organ">Organization</label>
-      <input type="text" id="signup_organ" required placeholder="e.g. DNA Labs Inc.">
-
-      <label for="signup_password">Password</label>
+      <label for="password">Password</label>
       <div class="password-wrapper">
-        <input type="password" id="signup_password" required placeholder="Create a password">
-        <span class="toggle-password" onclick="togglePassword('signup_password')"></span>
+        <input type="password" name="password" required placeholder="Create a password"
+               pattern="^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*#?&])[a-zA-Z\d@$!#%*?&]{8,}$"
+               title="Minimum 8 characters, at least 1 letter, 1 number, and 1 special character.">
       </div>
 
       <button type="submit">Sign Up</button>
@@ -216,32 +274,12 @@
     const showSignupBtn = document.getElementById('showSignup');
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
-    const messageBox = document.getElementById('messageBox');
-
-    let registeredEmail = "ayeshataufique29@gmail.com";
-    let registeredPassword = "ayesha2903@#";
-
-    function showMessage(msg, isSuccess = false) {
-      messageBox.style.display = 'block';
-      messageBox.textContent = msg;
-      messageBox.className = 'message ' + (isSuccess ? 'success' : 'error');
-    }
-
-    function hideMessage() {
-      messageBox.style.display = 'none';
-    }
-
-    function togglePassword(id) {
-      const input = document.getElementById(id);
-      input.type = input.type === 'password' ? 'text' : 'password';
-    }
 
     showLoginBtn.onclick = () => {
       loginForm.classList.add('active');
       signupForm.classList.remove('active');
       showLoginBtn.classList.add('active');
       showSignupBtn.classList.remove('active');
-      hideMessage();
     };
 
     showSignupBtn.onclick = () => {
@@ -249,58 +287,14 @@
       loginForm.classList.remove('active');
       showSignupBtn.classList.add('active');
       showLoginBtn.classList.remove('active');
-      hideMessage();
     };
 
-    loginForm.onsubmit = (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login_email').value.trim();
-      const password = document.getElementById('login_password').value;
-
-      if (email === registeredEmail) {
-        if (password === registeredPassword) {
-          window.location.href = "/dashboard/";
-        } else {
-          showMessage("You have typed the wrong password.");
-        }
-      } else {
-        showMessage("Sign up in the system first to log in.");
-        signupForm.classList.add('active');
-        loginForm.classList.remove('active');
-        showSignupBtn.classList.add('active');
-        showLoginBtn.classList.remove('active');
-      }
-    };
-
-    signupForm.onsubmit = (e) => {
-      e.preventDefault();
-      const email = document.getElementById('signup_email').value.trim();
-      const password = document.getElementById('signup_password').value;
-
-      const passwordValid = password.length >= 8 &&
-                            /[a-zA-Z]/.test(password) &&
-                            /[0-9]/.test(password) &&
-                            /[^a-zA-Z0-9]/.test(password);
-
-      if (!email.includes("@")) {
-        showMessage("Email must contain '@'");
-      } else if (!passwordValid) {
-        showMessage("Password must be at least 8 characters long and contain letters, numbers, and symbols.");
-      } else {
-        registeredEmail = email;
-        registeredPassword = password;
-        document.getElementById('login_email').value = email;
-        document.getElementById('login_password').value = password;
-        showMessage("You have signed up successfully!", true);
-        setTimeout(() => {
-          loginForm.classList.add('active');
-          signupForm.classList.remove('active');
-          showLoginBtn.classList.add('active');
-          showSignupBtn.classList.remove('active');
-          hideMessage();
-        }, 2000);
-      }
-    };
+    // Auto-switch to Signup if instructed by backend
+    {% if show_signup %}
+    window.addEventListener('DOMContentLoaded', () => {
+      showSignupBtn.click();
+    });
+    {% endif %}
   </script>
 </body>
 </html>
