@@ -1,240 +1,149 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Profile Inclusion Test</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4fdfc;
-      color: #333;
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
 
-    header {
-      position: sticky;
-      top: 0;
-      background-color: #00b8b8;
-      padding: 15px 30px;
-      color: white;
-      font-size: 1.4em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      z-index: 999;
-    }
-
-    .back-btn {
-      background: white;
-      color: #00b8b8;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .container {
-      padding: 30px;
-      max-width: 1000px;
-      margin: auto;
-    }
-
-    h2 {
-      text-align: center;
-      color: #00b8b8;
-    }
-
-    .section {
-      margin: 30px 0;
-    }
-
-    select, input[type="text"], input[type="number"] {
-      padding: 8px;
-      width: 100%;
-      margin: 8px 0;
-      border: 1px solid #b2f0f0;
-      border-radius: 5px;
-    }
-
-    .profile-section {
-      background: white;
-      border: 1px solid #b2f0f0;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 8px rgba(0,180,180,0.05);
-    }
-
-    table {
-      width: 100%;
-      margin-top: 15px;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #e0f7f6;
-    }
-
-    button {
-      background: #00b8b8;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 5px;
-      font-weight: bold;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #009999;
-    }
-
-    .message-box {
-      position: fixed;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #ffffff;
-      color: #00b8b8;
-      border: 1px solid #00b8b8;
-      padding: 20px 30px;
-      border-radius: 10px;
-      font-weight: bold;
-      box-shadow: 0 8px 20px rgba(0,180,180,0.2);
-      z-index: 999;
-      display: none;
-    }
-
-    .error {
-      color: #ff0033;
-      border-color: #ff0033;
-    }
-  </style>
 </head>
-<body>
 
+<body>
   <header>
-    <div>Profile Inclusion Test</div>
-    <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    <h2>Profile Inclusion Test</h2>
+    <button class="back-button" onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
   </header>
 
-  <div class="container">
-    <div class="section">
-      <label>Select DNA Kit:</label>
-      <select id="kitSelect">
-        <option value="">-- Select Kit --</option>
-        <option value="kit1">GlobalFiler</option>
-        <option value="kit2">PowerPlex Fusion</option>
-      </select>
-    </div>
+  <div class="form-section">
+    <label for="numProfiles">How many profiles do you want to include?</label>
+    <select id="numProfiles" onchange="generateProfileForms()">
+      <option value="">Select number of profiles </option>
+      <option value="2">2 Profiles</option>
+      <option value="3">3 Profiles</option>
+      <option value="4">4 Profiles</option>
+      <option value="5">5 Profiles</option>
+      <option value="6">6 Profiles</option>
+    </select>
 
-    <div class="section">
-      <label>How many profiles do you want to add? (2–6)</label>
-      <input type="number" id="profileCount" min="2" max="6">
-      <button onclick="generateProfileForms()">Proceed</button>
-    </div>
+    <!-- 🔁 Scroll removed here -->
+    <div id="profileFormsContainer" style="margin-top: 10px;"></div>
 
-    <div id="profileFormsContainer"></div>
+    <button id="proceedBtn" class="submit-btn" onclick="proceedTest()" disabled>Proceed</button>
+
+    <div id="messageBox" class="message-box"></div>
   </div>
 
-  <div id="messageBox" class="message-box"></div>
-
   <script>
-    const lociMap = {
-      kit1: ["D3S1358", "vWA", "FGA", "TH01", "D8S1179"], // DUMMY LOCI FOR FRONTEND ONLY
-      kit2: ["D5S818", "D13S317", "D7S820", "CSF1PO", "TPOX"] // DUMMY LOCI FOR FRONTEND ONLY
-    };
+    let profiles = [];
 
-    let currentProfileIndex = 0;
-    let selectedKit = "";
+    document.addEventListener("DOMContentLoaded", fetchProfiles);
 
-    function showMessage(msg, isError) {
-      const box = document.getElementById('messageBox');
-      box.textContent = msg;
-      box.className = isError ? 'message-box error' : 'message-box';
-      box.style.display = 'block';
-      setTimeout(() => box.style.display = 'none', 3000);
+    function fetchProfiles() {
+      fetch("{% url 'get_dna_profiles' %}")
+        .then(response => response.json())
+        .then(data => {
+          profiles = data.profiles;
+        })
+        .catch(error => {
+          console.error("Error fetching profiles:", error);
+          showMessage("Failed to load profiles.", true);
+        });
     }
 
     function generateProfileForms() {
-      const count = parseInt(document.getElementById('profileCount').value);
-      selectedKit = document.getElementById('kitSelect').value;
-      const container = document.getElementById('profileFormsContainer');
+      const container = document.getElementById("profileFormsContainer");
+      const count = parseInt(document.getElementById("numProfiles").value);
       container.innerHTML = '';
-      currentProfileIndex = 0;
-
-      if (!selectedKit) return showMessage('Please select a kit first', true);
-      if (isNaN(count) || count < 2 || count > 6) return showMessage('Enter a valid number between 2 and 6', true);
+      document.getElementById("messageBox").style.display = "none";
+      document.getElementById("proceedBtn").disabled = true;
 
       for (let i = 0; i < count; i++) {
-        const profileLetter = String.fromCharCode(65 + i);
-        const formDiv = document.createElement('div');
-        formDiv.className = 'profile-section';
-        formDiv.id = `profileForm${i}`;
-        formDiv.style.display = (i === 0) ? 'block' : 'none';
+        const label = document.createElement("label");
+        label.textContent = `Select Profile ${i + 1}`;
+        const select = document.createElement("select");
+        select.className = "profile-select";
+        select.id = `profile${i + 1}`;
+        select.onchange = validateProfiles;
 
-        formDiv.innerHTML = `
-          <h3>Profile ${profileLetter}</h3>
-          <label>Name:</label>
-          <input type="text" id="name${i}"  placeholder="Enter name" >
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = `-- Select Profile ${i + 1} --`;
+        select.appendChild(defaultOption);
 
-          <label>Relationship:</label>
-          <input type="text" id="relation${i}" placeholder="e.g. Mother, Father, Child, Sibling">
+        profiles.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = `${p.id}|${p.kit}`;
+          opt.textContent = `Profile ${p.id} - ${p.name} (${p.kit}) [${p.date}]`;
+          select.appendChild(opt);
+        });
 
-          <label>Date:</label>
-          <input type="text" id="date${i}" value="${new Date().toLocaleDateString()}" readonly>
-
-          <table>
-            <thead><tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr></thead>
-            <tbody>
-              ${lociMap[selectedKit].map((locus, index) => `
-                <tr>
-                  <td>${locus} <!-- DUMMY LOCUS FOR FRONTEND --></td>
-                  <td><input type="text" id="allele1_${i}_${index}"></td>
-                  <td><input type="text" id="allele2_${i}_${index}"></td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-
-          <button onclick="saveProfile(${i}, ${count})">Save Profile ${profileLetter}</button>
-        `;
-
-        container.appendChild(formDiv);
+        container.appendChild(label);
+        container.appendChild(select);
       }
     }
 
-    function saveProfile(i, totalProfiles) {
-      const name = document.getElementById(`name${i}`).value.trim();
-      const relation = document.getElementById(`relation${i}`).value.trim();
+    function showMessage(msg, isError = false) {
+      const box = document.getElementById("messageBox");
+      box.textContent = msg;
+      box.className = isError ? "message-box error" : "message-box success";
+      box.style.display = "block";
+    }
 
-      if (!name || !relation) {
-        showMessage(`Please fill all fields for Profile ${String.fromCharCode(65+i)}`, true);
-        return;
-      }
+    function validateProfiles() {
+      const selects = document.querySelectorAll(".profile-select");
+      const selectedProfiles = [];
+      let profileIds = new Set();
+      let kitName = null;
+      let errorShown = false;
 
-      for (let j = 0; j < lociMap[selectedKit].length; j++) {
-        const allele1 = document.getElementById(`allele1_${i}_${j}`).value.trim();
-        const allele2 = document.getElementById(`allele2_${i}_${j}`).value.trim();
-        if (!allele1 || !allele2) {
-          showMessage("Please fill all allele values.", true);
-          return;
+      for (const select of selects) {
+        const value = select.value;
+        if (!value) continue;
+
+        const [id, kit] = value.split("|");
+
+        // Check for duplicate profile IDs
+        if (profileIds.has(id)) {
+          showMessage("❌ Error: Duplicate profile selected.", true);
+          errorShown = true;
+          break;
+        }
+        profileIds.add(id);
+        selectedProfiles.push({ id, kit });
+
+        // Check for consistent kit name
+        if (!kitName) {
+          kitName = kit;
+        } else if (kitName !== kit) {
+          showMessage("❌ Error: Profiles must have the same kit name.", true);
+          errorShown = true;
+          break;
         }
       }
 
-      if (i + 1 < totalProfiles) {
-        showMessage(`Profile ${String.fromCharCode(65+i)} saved successfully.`);
-        document.getElementById(`profileForm${i+1}`).style.display = 'block';
+      if (!errorShown) {
+        if (selectedProfiles.length >= 2) {
+          showMessage("✅ Profiles validated. You may proceed.", false);
+          document.getElementById("proceedBtn").disabled = false;
+        } else {
+          // Not enough profiles selected yet; hide message
+          document.getElementById("messageBox").style.display = "none";
+          document.getElementById("proceedBtn").disabled = true;
+        }
       } else {
-        showMessage(`Profile ${String.fromCharCode(65+i)} saved successfully. Ready to proceed.`);
+        document.getElementById("proceedBtn").disabled = true;
       }
     }
-  </script>
+    
+    function proceedTest() {
+      showMessage("✅ Test initiated. Collect your report from the Report tab.", false);
+    }
 
+  </script>
 </body>
+
+
 </html>
