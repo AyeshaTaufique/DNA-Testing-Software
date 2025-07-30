@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kinship Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+</head>
+<body>
+  <header>
+    <h2>Kinship Analysis Test</h2>
+    <button class="back-button" onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
+  </header>
+
+  <div class="form-section">
+    <label for="scenario">Select Kinship Scenario:</label>
+    <select id="scenario" onchange="generateKinshipForm()">
+
+      <option value="">-- Choose Scenario --</option>
+      <option value="grandparent">Grandparent-Grandchild</option>
+      <option value="aunt_uncle">Aunt/Uncle to Niece/Nephew</option>
+      <option value="cousins">Cousins</option>
+    </select>
+
+
+    <div id="profileFormsContainer"></div>
+    <div id="messageBox" class="message-box"></div>
+  </div>
+
+  <script>
+  function showMessage(msg, isError = false) {
+    const box = document.getElementById('messageBox');
+    box.textContent = msg;
+    box.className = isError ? 'message-box error' : 'message-box success';
+    box.style.display = 'block';
+
+    // DO NOT auto-hide the message anymore (removed setTimeout)
+  }
+
+  function generateKinshipForm() {
+    const scenario = document.getElementById('scenario').value;
+    const container = document.getElementById('profileFormsContainer');
+    container.innerHTML = '';
+
+    if (!scenario) {
+      showMessage('Please choose a kinship scenario.', true);
+      return;
+    }
+
+    const labels = {
+      grandparent: ['Grandparent', 'Grandchild'],
+      aunt_uncle: ['Aunt/Uncle', 'Niece/Nephew'],
+      cousins: ['Cousin A', 'Cousin B']
+    }[scenario];
+
+    const formDiv = document.createElement('div');
+    formDiv.className = 'form-section';
+    formDiv.style.marginTop = '10px'; // Reduce spacing here
+
+    formDiv.innerHTML = `
+      <label for="profileA">Select ${labels[0]}</label>
+      <select id="profileA" onchange="validateProfiles()">
+        <option value="">-- Select ${labels[0]} --</option>
+      </select>
+
+      <label for="profileB">Select ${labels[1]}</label>
+      <select id="profileB" onchange="validateProfiles()">
+        <option value="">-- Select ${labels[1]} --</option>
+      </select>
+
+      <button id="proceedBtn" class="submit-btn" onclick="proceedTest()" disabled>Proceed</button>
+    `;
+    container.appendChild(formDiv);
+
+    fetchProfiles();
+  }
+
+  function validateProfiles() {
+    const profileAVal = document.getElementById('profileA').value;
+    const profileBVal = document.getElementById('profileB').value;
+    const proceedBtn = document.getElementById('proceedBtn');
+    const messageBox = document.getElementById('messageBox');
+    messageBox.style.display = 'none';
+    proceedBtn.disabled = true;
+
+    if (!profileAVal || !profileBVal) return;
+
+    const [idA, kitA] = profileAVal.split("|");
+    const [idB, kitB] = profileBVal.split("|");
+
+    if (idA === idB) {
+      showMessage("Error: You cannot select the same profile twice.", true);
+      return;
+    }
+
+    if (kitA !== kitB) {
+      showMessage("Error: Profiles must have the same kit name to proceed.", true);
+      return;
+    }
+
+    showMessage("✅ Profiles selected successfully. You may now proceed.", false);
+    proceedBtn.disabled = false;
+  }
+
+  function proceedTest() {
+    showMessage("✅ Test initiated. Collect your report from the Report tab.", false);
+  }
+
+  function fetchProfiles() {
+    fetch("{% url 'get_dna_profiles' %}")
+      .then(response => response.json())
+      .then(data => {
+        const profiles = data.profiles;
+        const profileA = document.getElementById("profileA");
+        const profileB = document.getElementById("profileB");
+
+        profiles.forEach(p => {
+          const option = document.createElement("option");
+          option.value = `${p.id}|${p.kit}`;
+          option.textContent = `Profile ${p.id} - ${p.name} (${p.kit}) [${p.date}]`;
+
+          const optionB = option.cloneNode(true);
+          profileA.appendChild(option);
+          profileB.appendChild(optionB);
+        });
+      })
+      .catch(error => {
+        console.error("Error loading profiles:", error);
+        showMessage("Failed to load profiles.", true);
+      });
+  }
+</script>
+
+</body>
+</html>
