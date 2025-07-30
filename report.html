@@ -1,44 +1,15 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>DNA Test Reports</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
+  <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+<style>
     /* 🌐 FRONTEND ONLY: This page is static and contains no backend integration */
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f4fdfc;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      background-color: #00b8b8;
-      color: white;
-      padding: 20px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1.4rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      z-index: 999;
-    }
-
-    .back-btn {
-      background-color: white;
-      color: #00b8b8;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
+    
     .container {
       max-width: 1000px;
       margin: 40px auto;
@@ -128,8 +99,9 @@
 <body>
   <header>
     📄 DNA Test Reports
-    <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    <button type="button" class="back-button" onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
   </header>
+
 
   <div class="container">
     <div class="search-bar">
