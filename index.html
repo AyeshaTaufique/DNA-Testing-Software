@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,7 +140,9 @@
       </script>
     </div>
 
-    <button class="start-btn" onclick="window.location.href='signup.html'">Start System</button>
+    <button  class="start-btn" onclick="window.location.href='{% url 'signup' %}'">Start System</button>
+
+
   </div>
 
 </body>
