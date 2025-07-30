@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+  <style>
+    input[type="text"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border-radius: 5px;
+      border: 1px solid #b2f0f0;
+      background-color: #f4fdfc;
+    }
+
+    .message-box {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #00b8b8;
+      border: 1px solid #00b8b8;
+      padding: 20px 30px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 8px 20px rgba(0, 180, 180, 0.2);
+      z-index: 999;
+      display: none;
+    }
+
+    .error {
+      background-color: #ffe3e3;
+      color: #ff0033;
+      border: 1px solid #ff0033;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2>Add Profile</h2>
+    <button class="back-button" onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
+  </header>
+
+  <div class="form-section">
+    <label for="kitSelect">Select Kit</label>
+    <select id="kitSelect" onchange="handleKitSelection()">
+      <option value="">-- Select a Kit --</option>
+      <option value="GlobalFiler">GlobalFiler</option>
+      <option value="AmpFlSTRIdentifiler">AmpFlSTR Identifiler</option>
+      <option value="PowerPlexFusionSystem">PowerPlex Fusion System</option>
+      <option value="PowerPlexFusion6CSystem">PowerPlex Fusion 6C System</option>
+      <option value="PowerPlex121System">PowerPlex1 21 System</option>
+    </select>
+
+    <label>Name</label>
+    <input type="text" id="name" placeholder="Enter name" />
+
+    <label>Date</label>
+    <input type="date" id="date" />
+
+    <div id="lociTable"></div>
+    <button class="submit-btn" onclick="saveProfile()">Save Profile</button>
+  </div>
+
+  <div id="messageBox" class="message-box"></div>
+
+  <script>
+    const lociMap = {
+      "GlobalFiler": ["D3S1358", "vWA", "D16S539", "CSF1PO", "TPOX", "D8S1179", "D21S11", "D18S51", "DYS391", "D2S441", "D19S433", "TH01", "FGA", "D22S1045", "D5S818", "D13S317", "D7S820", "SE33", "D10S1248", "D1S1656", "D12S391", "D2S1338"],
+      "AmpFlSTRIdentifiler": ["D8S1179", "D21S11", "D7S820", "CSF1PO", "D3S1358", "TH01", "D13S317", "D16S539", "D2S1338", "D19S433", "vWA", "TPOX", "D18S51", "D5S818", "FGA"],
+      "PowerPlexFusionSystem": ["D3S1358", "D1S1656", "D2S441", "D10S1248", "D13S317", "Penta E", "D16S539", "D18S51", "D2S1338", "CSF1PO", "Penta D", "TH01", "vWA", "D21S11", "D7S820", "D5S818", "TPOX", "D8S1179", "D12S391", "D19S433", "FGA", "D22S1045"],
+      "PowerPlexFusion6CSystem": ["D1S1656", "D2S1338", "D2S441", "D3S1358", "D5S818", "D7S820", "D8S1179", "D10S1248", "D12S391", "D13S317", "D16S539", "D18S51", "D19S433", "D21S11", "D22S1045", "CSF1PO", "FGA", "TH01", "vWA", "TPOX"],
+      "PowerPlex121System": ["D1S1656", "D2S1338", "D3S1358", "D5S818", "D6S1043", "D7S820", "D8S1179", "D12S391", "D13S317", "D16S539", "D18S51", "D19S433", "D21S11", "CSF1PO", "FGA", "Penta D", "Penta E", "TH01", "TPOX", "vWA"]
+    };
+
+    function handleKitSelection() {
+      const kit = document.getElementById("kitSelect").value;
+      const dateField = document.getElementById("date");
+      if (kit) {
+        dateField.valueAsDate = new Date();
+        generateLociTable(kit);
+      } else {
+        document.getElementById("lociTable").innerHTML = "";
+      }
+    }
+
+    function generateLociTable(kitKey) {
+      const container = document.getElementById("lociTable");
+      const loci = lociMap[kitKey];
+      let html = `<table><tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr>`;
+      loci.forEach((locus, index) => {
+        html += `<tr>
+          <td>${locus}</td>
+          <td><input type="text" name="allele1_${index}" /></td>
+          <td><input type="text" name="allele2_${index}" /></td>
+        </tr>`;
+      });
+      html += "</table>";
+      container.innerHTML = html;
+    }
+
+    function saveProfile() {
+      const name = document.getElementById("name").value.trim();
+      const date = document.getElementById("date").value;
+      const kit = document.getElementById("kitSelect").value;
+
+      if (!kit) return showMessage("Please select a kit.", true);
+      if (!name) return showMessage("Please enter a name.", true);
+      if (!date) return showMessage("Please enter a valid date.", true);
+
+      const loci = lociMap[kit];
+      const alleles = [];
+
+      for (let i = 0; i < loci.length; i++) {
+        const allele1 = document.querySelector(`input[name="allele1_${i}"]`).value.trim();
+        const allele2 = document.querySelector(`input[name="allele2_${i}"]`).value.trim();
+
+        if (!allele1 || !allele2) {
+          showMessage("Please fill all allele values.", true);
+          return;
+        }
+
+        alleles.push({
+          locus: loci[i],
+          allele1: allele1,
+          allele2: allele2
+        });
+      }
+
+      fetch("{% url 'save_profile' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+          name: name,
+          date: date,
+          kit: kit,
+          alleles: alleles
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            showMessage("Profile saved successfully.");
+            setTimeout(() => location.reload(), 3000);
+          } else {
+            showMessage(data.message || "Error saving profile.", true);
+          }
+        })
+        .catch(error => {
+          showMessage("Request failed: " + error, true);
+        });
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function showMessage(msg, isError = false) {
+      const box = document.getElementById("messageBox");
+      box.textContent = msg;
+      box.className = isError ? "message-box error" : "message-box";
+      box.style.display = "block";
+      setTimeout(() => (box.style.display = "none"), 3000);
+    }
+  </script>
+</body>
+
+</html>
