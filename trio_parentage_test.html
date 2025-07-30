@@ -1,239 +1,145 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Trio Parentage Test</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f4fdfc;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      background-color: #00b8b8;
-      color: white;
-      padding: 20px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 999;
-    }
-
-    header h2 {
-      margin: 0;
-      font-size: 1.4em;
-    }
-
-    .button {
-      background-color: white;
-      color: #00b8b8;
-      border: none;
-      padding: 10px 18px;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .form-section {
-      max-width: 900px;
-      background: white;
-      padding: 25px;
-      margin: 30px auto;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 180, 180, 0.1);
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: 600;
-      color: #007e7e;
-    }
-
-    select,
-    input[type="text"],
-    input[type="date"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 6px;
-      border-radius: 5px;
-      border: 1px solid #b2f0f0;
-      background-color: #f4fdfc;
-    }
-
-    .submit-btn {
-      margin-top: 20px;
-      background-color: #00b8b8;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .submit-btn:hover {
-      background-color: #009e9e;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th,
-    td {
-      border: 1px solid #b2f0f0;
-      padding: 10px;
-      text-align: center;
-    }
-
-    th {
-      background: #e0f7f6;
-      color: #007e7e;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .message-box {
-      position: fixed;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #ffffff;
-      color: #00b8b8;
-      border: 1px solid #00b8b8;
-      padding: 20px 30px;
-      border-radius: 10px;
-      font-weight: bold;
-      box-shadow: 0 8px 20px rgba(0, 180, 180, 0.2);
-      z-index: 999;
-      display: none;
-    }
-
-    .error {
-      color: #ff0033;
-      border-color: #ff0033;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+ 
 </head>
+
 <body>
   <header>
     <h2>Trio Parentage Test</h2>
-    <button class="button" onclick="window.location.href='dashboard.html'">&larr; Back to Dashboard</button>
+    <button class="back-button" onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
   </header>
 
-  <div class="form-section" id="kitSection">
-    <label for="kitSelect">Select DNA Kit</label>
-    <select id="kitSelect">
-      <option value="">-- Choose a Kit --</option>
-      <option value="kit1">GlobalFiler</option>
-      <option value="kit2">PowerPlex Fusion</option>
+    <div class="form-section">
+    <label for="profileA">Select Alleged Father Profile </label>
+    <select id="profileA" onchange="validateProfiles()">
+      <option value="">-- Select Alleged Father Profile --</option>
     </select>
-    <button class="submit-btn" onclick="selectKit()">Confirm Kit</button>
+
+    <label for="profileB">Select Mother Profile</label>
+    <select id="profileB" onchange="validateProfiles()">
+      <option value="">-- Select Mother Profile--</option>
+    </select>
+
+    <label for="profileC">Select Child Profile</label>
+    <select id="profileC" onchange="validateProfiles()">
+      <option value="">-- Select Child Profile--</option>
+    </select>
+
+
+    <button id="proceedBtn" class="submit-btn" onclick="proceedTest()" disabled>Proceed</button>
+
+    <div id="messageBox" class="message-box"></div>
   </div>
 
-  <div class="form-section hidden" id="profileAForm"></div>
-  <div class="form-section hidden" id="profileBForm"></div>
-  <div class="form-section hidden" id="profileCForm"></div>
-
-  <div id="messageBox" class="message-box"></div>
-
   <script>
-    // Dummy locus data for frontend only – remove after backend integration
-    const lociMap = {
-      kit1: ["D3S1358", "vWA", "FGA", "TH01", "D8S1179"], // Temporary loci list
-      kit2: ["D5S818", "D13S317", "D7S820", "CSF1PO", "TPOX"] // Temporary loci list
-    };
-
-    let selectedKit = "";
 
     function showMessage(msg, isError = false) {
       const box = document.getElementById("messageBox");
       box.textContent = msg;
-      box.className = isError ? "message-box error" : "message-box";
+      box.className = isError ? "message-box error" : "message-box success";
       box.style.display = "block";
-      setTimeout(() => (box.style.display = "none"), 3000);
     }
 
-    function selectKit() {
-      selectedKit = document.getElementById("kitSelect").value;
-      if (!selectedKit) {
-        showMessage("Please select a DNA kit.", true);
-        return;
-      }
-      generateProfileForm("A", "profileAForm", "Profile A");
-    }
+    function validateProfiles() {
+      const profileAVal = document.getElementById("profileA").value;
+      const profileBVal = document.getElementById("profileB").value;
+      const profileCVal = document.getElementById("profileC").value;
+      const proceedBtn = document.getElementById("proceedBtn");
+      const messageBox = document.getElementById("messageBox");
 
-    function generateProfileForm(profileId, containerId, title) {
-      const container = document.getElementById(containerId);
-      container.classList.remove("hidden");
+      messageBox.style.display = "none";
+      proceedBtn.disabled = true;
 
-      let html = `<h3>${title}</h3>
-        <label>Name</label>
-        <input type="text" id="name${profileId}" placeholder="Enter name" />
+      let selectedProfiles = [];
+      let kits = [];
 
-        <label>Relationship</label>
-        <input type="text" id="relation${profileId}" placeholder="e.g. Mother, Father, Child, Sibling" />
-
-        <label>Date</label>
-        <input type="date" id="date${profileId}" />
-
-        <table>
-          <tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr>`;
-
-      lociMap[selectedKit].forEach((locus, i) => {
-        html += `<tr>
-            <td>${locus} <!-- DUMMY LOCUS FOR FRONTEND --></td>
-            <td><input type="text" name="allele1_${profileId}_${i}" /></td>
-            <td><input type="text" name="allele2_${profileId}_${i}" /></td>
-          </tr>`;
-      });
-
-      html += `</table>
-        <button class="submit-btn" onclick="saveProfile('${profileId}')">Save ${title}</button>`;
-
-      container.innerHTML = html;
-      document.getElementById(`date${profileId}`).valueAsDate = new Date();
-    }
-
-    function saveProfile(profileId) {
-      const name = document.getElementById("name" + profileId).value.trim();
-      const relation = document.getElementById("relation" + profileId).value.trim();
-      const date = document.getElementById("date" + profileId).value;
-
-      if (!name || !relation || !date) {
-        showMessage(`Please fill all the fields for Profile ${profileId}.`, true);
-        return;
+      if (profileAVal) {
+        const [id, kit] = profileAVal.split("|");
+        selectedProfiles.push(id);
+        kits.push(kit);
       }
 
-      const table = document.getElementById("profile" + profileId + "Form");
-      const inputs = table.querySelectorAll("input");
-      for (let input of inputs) {
-        if (input.type === "text" && !input.value.trim()) {
-          showMessage("Please fill all allele values.", true);
+      if (profileBVal) {
+        const [id, kit] = profileBVal.split("|");
+        selectedProfiles.push(id);
+        kits.push(kit);
+      }
+
+      if (profileCVal) {
+        const [id, kit] = profileCVal.split("|");
+        selectedProfiles.push(id);
+        kits.push(kit);
+      }
+
+      // Check for duplicates if at least 2 profiles are selected
+      if (selectedProfiles.length >= 2) {
+        const uniqueProfiles = new Set(selectedProfiles);
+        if (uniqueProfiles.size !== selectedProfiles.length) {
+          showMessage("❌ Error: You cannot select the same profile twice.", true);
+          return;
+        }
+
+        // Check for kit mismatch
+        const uniqueKits = new Set(kits);
+        if (uniqueKits.size !== 1) {
+          showMessage("❌ Error: Profiles must have the same kit name to proceed.", true);
           return;
         }
       }
 
-      if (profileId === "C") {
-        showMessage("Profile C saved successfully. Ready to proceed.");
+      // If all 3 are selected and valid
+      if (selectedProfiles.length === 3) {
+        showMessage("✅ Profiles selected successfully. You may now proceed.", false);
+        proceedBtn.disabled = false;
       } else {
-        showMessage(`Profile ${profileId} saved successfully.`);
+        // Partial valid selection (no error)
+        messageBox.style.display = "none";
       }
-
-      if (profileId === "A") generateProfileForm("B", "profileBForm", "Profile B");
-      if (profileId === "B") generateProfileForm("C", "profileCForm", "Profile C");
     }
+
+
+    function proceedTest() {
+      showMessage("✅ Test initiated. Collect your report from the Report tab.", false);
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchProfiles);
+
+    function fetchProfiles() {
+      fetch("{% url 'get_dna_profiles' %}")
+        .then(response => response.json())
+        .then(data => {
+          const profiles = data.profiles;
+          const profileA = document.getElementById("profileA");
+          const profileB = document.getElementById("profileB");
+          const profileC = document.getElementById("profileC");
+
+          profiles.forEach(p => {
+            const option = document.createElement("option");
+            option.value = `${p.id}|${p.kit}`;
+            option.textContent = `Profile ${p.id} - ${p.name} (${p.kit}) [${p.date}]`;
+
+            profileA.appendChild(option.cloneNode(true));
+            profileB.appendChild(option.cloneNode(true));
+            profileC.appendChild(option.cloneNode(true));
+          });
+        })
+        .catch(error => {
+          console.error("Error loading profiles:", error);
+          showMessage("Failed to load profiles.", true);
+        });
+    }
+
+
   </script>
+
 </body>
+
 </html>
