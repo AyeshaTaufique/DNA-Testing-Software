@@ -11,31 +11,72 @@
 </head>
 
 <body>
-<header>
+  <header>
     <h2>Duo Parentage Test</h2>
     <button class="back-button" onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
   </header>
 
-    <div class="form-section">
-    <label for="profileA">Select Alleged Father Profile </label>
+  <div class="form-section">
+    <label for="profileA">Select Alleged Father Profile</label>
     <select id="profileA" onchange="validateProfiles()">
       <option value="">-- Select Alleged Father Profile --</option>
     </select>
 
     <label for="profileB">Select Child Profile</label>
     <select id="profileB" onchange="validateProfiles()">
-      <option value="">-- Select Child Profile--</option>
+      <option value="">-- Select Child Profile --</option>
     </select>
 
     <button id="proceedBtn" class="submit-btn" onclick="proceedTest()" disabled>Proceed</button>
 
-    <div id="messageBox" class="message-box"></div>
+    <div id="messageBox" class="message-box" style="white-space: pre-line;"></div>
+    <div style="height: 30px;"></div>
+
+<!-- Interpretation Section (within form-section) -->
+    <div style="text-align: center;">
+      <h2 style="color: #007e7e; font-size: 1.3rem; margin-bottom: 10px;">DUO Test Interpretation</h2>
+
+      <div style="overflow-x: auto;">
+        <table style="margin: 0 auto;">
+          <thead>
+            <tr>
+              <th>CPI Value</th>
+              <th>Probability of Paternity</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0</td>
+              <td>0%</td>
+              <td>Alleged father is excluded</td>
+            </tr>
+            <tr>
+              <td>1 – 99</td>
+              <td>&lt; 99%</td>
+              <td>Weak or inconclusive support</td>
+            </tr>
+            <tr>
+              <td>100 – 999</td>
+              <td>~99% – 99.9%</td>
+              <td>Moderate to strong support</td>
+            </tr>
+            <tr>
+              <td>1000+</td>
+              <td>&gt; 99.9%</td>
+              <td>Very strong support.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
   <script>
     function showMessage(msg, isError = false) {
       const box = document.getElementById("messageBox");
-      box.textContent = msg;
+      box.innerText = msg; // Allows \n to render as line breaks
       box.className = isError ? "message-box error" : "message-box success";
       box.style.display = "block";
     }
@@ -48,20 +89,18 @@
       messageBox.style.display = "none";
       proceedBtn.disabled = true;
 
-      if (!profileAVal || !profileBVal) {
-        return;
-      }
+      if (!profileAVal || !profileBVal) return;
 
       const [idA, kitA] = profileAVal.split("|");
       const [idB, kitB] = profileBVal.split("|");
 
       if (idA === idB) {
-        showMessage("Error: You cannot select the same profile twice.", true);
+        showMessage("❌ Error: You cannot select the same profile twice.", true);
         return;
       }
 
       if (kitA !== kitB) {
-        showMessage("Error: Profiles must have the same kit name to proceed.", true);
+        showMessage("❌ Error: Profiles must have the same kit name to proceed.", true);
         return;
       }
 
@@ -69,10 +108,42 @@
       proceedBtn.disabled = false;
     }
 
+    
     function proceedTest() {
       showMessage("✅ Test initiated. Collect your report from the Report tab.", false);
-    }
-      document.addEventListener("DOMContentLoaded", fetchProfiles);
+
+      const profileAVal = document.getElementById("profileA").value;
+      const profileBVal = document.getElementById("profileB").value;
+      const [idA] = profileAVal.split("|");
+      const [idB] = profileBVal.split("|");
+
+      fetch("{% url 'run_duo_paternity_test' %}", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ profile_a: idA, profile_b: idB }),
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.cpi && data.cpi !== "Not Applicable") {
+              showMessage(
+                  `CPI: ${data.cpi}\nProbability of Paternity: ${data.probability}\nInterpretation: ${data.interpretation}`
+              );
+          } else if (data.interpretation) {
+              showMessage(
+                  `CPI: 0\nProbability of Paternity: 0%\nInterpretation: ${data.interpretation}`
+              );
+          } else {
+              showMessage("Error: " + (data.error || "Unknown error"), true);
+          }
+      })
+      .catch(error => {
+          console.error("Error:", error);
+          showMessage("Error contacting server.", true);
+      });
+  }
 
     function fetchProfiles() {
       fetch("{% url 'get_dna_profiles' %}")
@@ -87,7 +158,6 @@
             option.value = `${p.id}|${p.kit}`;
             option.textContent = `Profile ${p.id} - ${p.name} (${p.kit}) [${p.date}]`;
 
-            // Clone for second dropdown
             const optionB = option.cloneNode(true);
             profileA.appendChild(option);
             profileB.appendChild(optionB);
@@ -95,10 +165,28 @@
         })
         .catch(error => {
           console.error("Error loading profiles:", error);
-          showMessage("Failed to load profiles.", true);
+          showMessage("❌ Failed to load profiles.", true);
         });
+    }
+
+    // Ensure profiles load after DOM is ready
+    document.addEventListener("DOMContentLoaded", fetchProfiles);
+
+    // Utility: CSRF Token getter
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     }
   </script>
 </body>
-
 </html>
