@@ -19,6 +19,16 @@
       background-color: #f4fdfc;
     }
 
+    input.invalid {
+      border: 2px solid #ff0033;
+      background-color: #ffecec;
+    }
+
+    input.valid {
+      border: 2px solid #28a745;
+      background-color: #eaffea;
+    }
+
     .message-box {
       position: fixed;
       top: 20%;
@@ -54,10 +64,10 @@
     <select id="kitSelect" onchange="handleKitSelection()">
       <option value="">-- Select a Kit --</option>
       <option value="GlobalFiler">GlobalFiler</option>
-      <option value="AmpFlSTRIdentifiler">AmpFlSTR Identifiler</option>
-      <option value="PowerPlexFusionSystem">PowerPlex Fusion System</option>
-      <option value="PowerPlexFusion6CSystem">PowerPlex Fusion 6C System</option>
-      <option value="PowerPlex121System">PowerPlex1 21 System</option>
+      <option value="AmpFlSTR Identifiler">AmpFlSTR Identifiler</option>
+      <option value="PowerPlex Fusion System">PowerPlex Fusion System</option>
+      <option value="PowerPlex Fusion 6C System">PowerPlex Fusion 6C System</option>
+      <option value="PowerPlex 21 System">PowerPlex 21 System</option>
     </select>
 
     <label>Name</label>
@@ -74,11 +84,35 @@
 
   <script>
     const lociMap = {
-      "GlobalFiler": ["D3S1358", "vWA", "D16S539", "CSF1PO", "TPOX", "D8S1179", "D21S11", "D18S51", "DYS391", "D2S441", "D19S433", "TH01", "FGA", "D22S1045", "D5S818", "D13S317", "D7S820", "SE33", "D10S1248", "D1S1656", "D12S391", "D2S1338"],
-      "AmpFlSTRIdentifiler": ["D8S1179", "D21S11", "D7S820", "CSF1PO", "D3S1358", "TH01", "D13S317", "D16S539", "D2S1338", "D19S433", "vWA", "TPOX", "D18S51", "D5S818", "FGA"],
-      "PowerPlexFusionSystem": ["D3S1358", "D1S1656", "D2S441", "D10S1248", "D13S317", "Penta E", "D16S539", "D18S51", "D2S1338", "CSF1PO", "Penta D", "TH01", "vWA", "D21S11", "D7S820", "D5S818", "TPOX", "D8S1179", "D12S391", "D19S433", "FGA", "D22S1045"],
-      "PowerPlexFusion6CSystem": ["D1S1656", "D2S1338", "D2S441", "D3S1358", "D5S818", "D7S820", "D8S1179", "D10S1248", "D12S391", "D13S317", "D16S539", "D18S51", "D19S433", "D21S11", "D22S1045", "CSF1PO", "FGA", "TH01", "vWA", "TPOX"],
-      "PowerPlex121System": ["D1S1656", "D2S1338", "D3S1358", "D5S818", "D6S1043", "D7S820", "D8S1179", "D12S391", "D13S317", "D16S539", "D18S51", "D19S433", "D21S11", "CSF1PO", "FGA", "Penta D", "Penta E", "TH01", "TPOX", "vWA"]
+      "GlobalFiler": {
+        "D3S1358": [10, 17], "vWA": [14, 23], "D16S539": [6, 15], "CSF1PO": [6, 13], "TPOX": [6, 11], "D8S1179": [7, 16],
+        "D21S11": [24, 33], "D18S51": [9, 25], "DYS391": [8, 12], "D2S441": [7, 14], "D19S433": [8, 18], "TH01": [5, 11],
+        "FGA": [17, 27], "D22S1045": [9, 15], "D5S818": [8, 16], "D13S317": [6, 13], "D7S820": [6, 14], "SE33": [10, 40],
+        "D10S1248": [12, 16], "D1S1656": [10, 20], "D12S391": [9, 17], "D2S1338": [17, 24]
+      },
+      "AmpFlSTR Identifiler": {
+        "D8S1179": [7, 16], "D21S11": [24, 33], "D7S820": [6, 14], "CSF1PO": [6, 13], "D3S1358": [10, 17], "TH01": [5, 11],
+        "D13S317": [6, 13], "D16S539": [6, 15], "D2S1338": [17, 24], "D19S433": [8, 18], "vWA": [14, 23], "TPOX": [6, 11],
+        "D18S51": [9, 25], "D5S818": [8, 16], "FGA": [17, 27]
+      },
+      "PowerPlex Fusion System": {
+        "D3S1358": [10, 17], "D1S1656": [10, 20], "D2S441": [7, 14], "D10S1248": [12, 16], "D13S317": [6, 13],
+        "D16S539": [6, 15], "D18S51": [9, 25], "D2S1338": [17, 24], "CSF1PO": [6, 13], "TH01": [5, 11], "vWA": [14, 23],
+        "D21S11": [24, 33], "D7S820": [6, 14], "D5S818": [8, 16], "TPOX": [6, 11], "D8S1179": [7, 16],
+        "D12S391": [9, 17], "D19S433": [8, 18], "FGA": [17, 27]
+      },
+      "PowerPlex Fusion 6C System": {
+        "D1S1656": [10, 20], "D2S1338": [17, 24], "D2S441": [7, 14], "D3S1358": [10, 17], "D5S818": [8, 16],
+        "D7S820": [6, 14], "D8S1179": [7, 16], "D10S1248": [12, 16], "D12S391": [9, 17], "D13S317": [6, 13],
+        "D16S539": [6, 15], "D18S51": [9, 25], "D19S433": [8, 18], "D21S11": [24, 33], "D22S1045": [9, 15],
+        "CSF1PO": [6, 13], "FGA": [17, 27], "TH01": [5, 11], "vWA": [14, 23], "TPOX": [6, 11]
+      },
+      "PowerPlex 21 System": {
+        "D1S1656": [10, 20], "D2S1338": [17, 24], "D3S1358": [10, 17], "D5S818": [8, 16], "D7S820": [6, 14],
+        "D8S1179": [7, 16], "D12S391": [9, 17], "D13S317": [6, 13], "D16S539": [6, 15], "D18S51": [9, 25],
+        "D19S433": [8, 18], "D21S11": [24, 33], "CSF1PO": [6, 13], "FGA": [17, 27], "TH01": [5, 11],
+        "TPOX": [6, 11], "vWA": [14, 23]
+      }
     };
 
     function handleKitSelection() {
@@ -93,18 +127,44 @@
     }
 
     function generateLociTable(kitKey) {
-      const container = document.getElementById("lociTable");
-      const loci = lociMap[kitKey];
-      let html = `<table><tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr>`;
-      loci.forEach((locus, index) => {
-        html += `<tr>
-          <td>${locus}</td>
-          <td><input type="text" name="allele1_${index}" /></td>
-          <td><input type="text" name="allele2_${index}" /></td>
-        </tr>`;
-      });
-      html += "</table>";
-      container.innerHTML = html;
+        const container = document.getElementById("lociTable");
+        const loci = lociMap[kitKey];
+        let html = `<table><tr><th>Locus</th><th>Allele 1</th><th>Allele 2</th></tr>`;
+        Object.entries(loci).forEach(([locus, range], index) => {
+          const placeholder = `${range[0]}–${range[1]}`;
+          html += `<tr>
+            <td>${locus}</td>
+            <td><input type="text" name="allele1_${index}"
+              data-locus="${locus}" data-min="${range[0]}" data-max="${range[1]}"
+              placeholder="${placeholder}" title="Allowed: ${placeholder}" oninput="validateAllele(this)" /></td>
+            <td><input type="text" name="allele2_${index}"
+              data-locus="${locus}" data-min="${range[0]}" data-max="${range[1]}"
+              placeholder="${placeholder}" title="Allowed: ${placeholder}" oninput="validateAllele(this)" /></td>
+          </tr>`;
+        });
+        html += "</table>";
+        container.innerHTML = html;
+      }
+
+
+    function validateAllele(el) {
+      const val = el.value.trim();
+      const min = parseFloat(el.dataset.min);
+      const max = parseFloat(el.dataset.max);
+
+      if (!val) {
+        el.classList.remove("invalid", "valid");
+        return;
+      }
+
+      const num = parseFloat(val);
+      if (isNaN(num) || num < min || num > max) {
+        el.classList.add("invalid");
+        el.classList.remove("valid");
+      } else {
+        el.classList.remove("invalid");
+        el.classList.add("valid");
+      }
     }
 
     function saveProfile() {
@@ -118,21 +178,31 @@
 
       const loci = lociMap[kit];
       const alleles = [];
+      const locusKeys = Object.keys(loci);
 
-      for (let i = 0; i < loci.length; i++) {
-        const allele1 = document.querySelector(`input[name="allele1_${i}"]`).value.trim();
-        const allele2 = document.querySelector(`input[name="allele2_${i}"]`).value.trim();
+      for (let i = 0; i < locusKeys.length; i++) {
+        const locus = locusKeys[i];
+        const range = loci[locus];
+        const allele1Field = document.querySelector(`input[name="allele1_${i}"]`);
+        const allele2Field = document.querySelector(`input[name="allele2_${i}"]`);
 
-        if (!allele1 || !allele2) {
-          showMessage("Please fill all allele values.", true);
+        const allele1 = allele1Field.value.trim();
+        const allele2 = allele2Field.value.trim();
+
+        const a1 = parseFloat(allele1);
+        const a2 = parseFloat(allele2);
+
+        if (!allele1 || !allele2 || isNaN(a1) || isNaN(a2) || a1 < range[0] || a1 > range[1] || a2 < range[0] || a2 > range[1]) {
+          allele1Field.classList.add("invalid");
+          allele2Field.classList.add("invalid");
+          showMessage(`Alleles for ${locus} must be between ${range[0]} and ${range[1]}.`, true);
           return;
+        } else {
+          allele1Field.classList.remove("invalid");
+          allele2Field.classList.remove("invalid");
         }
 
-        alleles.push({
-          locus: loci[i],
-          allele1: allele1,
-          allele2: allele2
-        });
+        alleles.push({ locus: locus, allele1: allele1, allele2: allele2 });
       }
 
       fetch("{% url 'save_profile' %}", {
