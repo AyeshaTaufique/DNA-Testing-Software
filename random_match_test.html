@@ -30,11 +30,53 @@
     <button id="proceedBtn" class="submit-btn" onclick="proceedTest()" disabled>Proceed</button>
 
     <div id="messageBox" class="message-box"></div>
+        <!-- Spacer between result and table -->
+    <div style="height: 30px;"></div>
+
+    <!-- Interpretation Section (within form-section) -->
+    <div style="text-align: center;">
+      <h2 style="color: #007e7e; font-size: 1.3rem; margin-bottom: 10px;">RMP Test Interpretation</h2>
+
+      <div style="overflow-x: auto;">
+        <table style="margin: 0 auto;">
+          <thead>
+            <tr>
+              <th>RMP Value (%)</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>&gt; 1%</td>
+              <td>Very weak evidence of common origin.</td>
+            </tr>
+            <tr>
+              <td>0.1% - 1%</td>
+              <td>Weak to moderate evidence of common origin.</td>
+            </tr>
+            <tr>
+              <td>0.01% - 0.1%</td>
+              <td>Moderate to strong evidence of common origin.</td>
+            </tr>
+            <tr>
+              <td>0.0001% - 0.01%</td>
+              <td>Extremely strong evidence of common origin.</td>
+            </tr>
+            <tr>
+              <td>&lt; 0.0001%</td>
+              <td>Very strong evidence of common origin.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
   <script>
     function showMessage(msg, isError = false) {
       const box = document.getElementById("messageBox");
+      messageBox.innerText = message; // ✅ renders \n as a line break
       box.textContent = msg;
       box.className = isError ? "message-box error" : "message-box success";
       box.style.display = "block";
@@ -70,9 +112,38 @@
     }
 
     function proceedTest() {
-      showMessage("✅ Test initiated. Collect your report from the Report tab.", false);
-    }
-      document.addEventListener("DOMContentLoaded", fetchProfiles);
+    showMessage("✅ Test initiated. Collect your report from the Report tab.", false);
+
+    const profileAVal = document.getElementById("profileA").value;
+    const profileBVal = document.getElementById("profileB").value;
+    const [idA] = profileAVal.split("|");
+    const [idB] = profileBVal.split("|");
+
+    fetch("{% url 'run_rmp_test' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({ profile_a: idA, profile_b: idB }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.rmp && data.rmp !== "Not Applicable") {
+            showMessage(`RMP: ${data.rmp}\nInterpretation: ${data.interpretation}`);
+        } else if (data.interpretation) {
+            showMessage(`RMP: 0\nInterpretation: ${data.interpretation}`);
+        } else {
+            showMessage("Error: " + (data.error || "Unknown error"), true);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showMessage("Error contacting server.", true);
+    });
+  }
+          
+    document.addEventListener("DOMContentLoaded", fetchProfiles);
 
     function fetchProfiles() {
       fetch("{% url 'get_dna_profiles' %}")
@@ -97,7 +168,23 @@
           console.error("Error loading profiles:", error);
           showMessage("Failed to load profiles.", true);
         });
-    }
+    }  
+    
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (const cookie of cookies) {
+              const trimmed = cookie.trim();
+              if (trimmed.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+      
   </script>
 </body>
 
