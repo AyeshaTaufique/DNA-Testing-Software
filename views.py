@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from frontend.calculations.rmp_test import run_rmp_analysis
 from frontend.calculations.duo_test import run_duo_analysis
 from frontend.calculations.trio_test import run_trio_analysis 
+from frontend.calculations.profile_inclusion_test import profile_inclusion_analysis
 
 import json
 
@@ -239,16 +240,24 @@ def run_trio_paternity_test(request):
         profile_c_id = body.get("profile_c")
 
         if not profile_a_id or not profile_b_id or not profile_c_id:
-            return JsonResponse({"error": "Both profiles must be selected."}, status=400)
+            return JsonResponse({"error": "All three profiles must be selected."}, status=400)
 
         profile_a = get_object_or_404(DNAProfile, pk=profile_a_id)
         profile_b = get_object_or_404(DNAProfile, pk=profile_b_id)
         profile_c = get_object_or_404(DNAProfile, pk=profile_c_id)
 
+        # 🔍 Run Trio Analysis
+        result_text, interpretation = run_trio_analysis([profile_a, profile_b, profile_c])
 
-        # ✅ CORRECT FUNCTION CALL
-        result_text, interpretation = run_trio_analysis([profile_a, profile_b,profile_c])
+        # ✅ If error is returned, don’t parse CPI/probability
+        if result_text.startswith("Error:"):
+            return JsonResponse({
+                "success": False,
+                "error": result_text,
+                "interpretation": interpretation,
+            }, status=400)
 
+        # ✅ Otherwise, parse CPI and probability
         for line in result_text.splitlines():
             if line.startswith("Final CPI:"):
                 formatted_cpi = line.split(":", 1)[1].strip()
@@ -280,8 +289,44 @@ def sibship_analysis(request):
 def profile_inclusion(request):
     return render(request, 'manage/profile_inclusion_test.html')
 
+@csrf_exempt
+def run_profile_inclusion_test(request):
+    if request.method != 'POST':
+        return JsonResponse({"error": "Invalid request method."}, status=405)
+
+    try:
+        body = json.loads(request.body)
+        profile_ids = body.get("profiles")
+
+        if not profile_ids or len(profile_ids) < 2:
+            return JsonResponse({"error": "At least two profiles must be selected."}, status=400)
+
+        # Fetch profiles by their primary key: profile_id
+        profiles = [get_object_or_404(DNAProfile, profile_id=pid) for pid in profile_ids]
+
+        # Run the profile inclusion analysis
+        result_text, interpretation = profile_inclusion_analysis(profiles)
+
+        # Extract formatted CPI from result_text
+        cpi = "0"
+        for line in result_text.splitlines():
+            if line.startswith("Final CPI (cumulative product):"):
+                cpi = line.split(":", 1)[1].strip()
+                break
+
+        return JsonResponse({
+            "success": True,
+            "cpi": cpi,
+            "interpretation": interpretation
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": f"Exception occurred: {str(e)}"}, status=500)
+
+
 def random_match(request):
     return render(request, 'manage/random_match_test.html')
+
 
 @csrf_exempt
 def run_rmp_test(request):
